@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 void merge(int vetor[], int comeco, int meio, int fim) ;
 void mergeSort(int vetor[], int comeco, int fim);
@@ -9,8 +10,12 @@ void mergeSort(int vetor[], int comeco, int fim);
 int main(int argc, char** argv)
 {
 	int MAX_SIZE = atoi(argv[1]);
+	FILE *fp;
+	double sort_time_stamp, clone_data_time_stamp;
+	clock_t t_start, t_end;
 	int *unorderedVec = (int *) malloc(MAX_SIZE*sizeof(int));
 	int i;
+	
 	for(i = 0; i < MAX_SIZE; i++)
 		unorderedVec[i] = rand() % MAX_SIZE;
 
@@ -25,6 +30,8 @@ int main(int argc, char** argv)
 	int size;
 	int *recv_data;
 	recv_data = (int *) malloc((MAX_SIZE/world_size)*sizeof(int));
+	
+	t_start = clock();
 	MPI_Scatter(
     (void*) unorderedVec, //Unordered array 
     (MAX_SIZE/world_size), // Chunck_size
@@ -34,10 +41,13 @@ int main(int argc, char** argv)
     MPI_INT,//INT
     0, //0
     MPI_COMM_WORLD); // MPI_COMM_WORLD)
-	
+	t_end = clock();
+	clone_data_time_stamp = (double) t_end - t_start;
 	
 	
 	size = MAX_SIZE/world_size;
+	
+	t_start = clock();
 	
 	mergeSort(recv_data, 0, size - 1);
 	
@@ -59,9 +69,21 @@ int main(int argc, char** argv)
 	if(world_rank == 0)
 	{
 		mergeSort( orderedVec, 0, MAX_SIZE -1 );
+		t_end = clock();
+		sort_time_stamp = (double) t_end - t_start;
+		if((fp = fopen("TimeMeasure.txt", "w")) == NULL)
+		{
+			printf("Nao conseguiu abrir o arquivo!\n");
+			exit(1);
+		}
+		fprintf(fp,"Cloning Data time: %lf\n", clone_data_time_stamp/CLOCKS_PER_SEC);
+		fprintf(fp,"Sorting time: %lf\n", sort_time_stamp/CLOCKS_PER_SEC);
+		fflush(fp);
+		fclose(fp);
 		for(i = 0; i < MAX_SIZE; i++) printf("%d ", orderedVec[i]);
 		printf("\n");
 	}
+	
 	
 	free(orderedVec);
 	free(recv_data);
