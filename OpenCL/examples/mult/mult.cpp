@@ -124,7 +124,7 @@ int main(int argc, char* argv[])
 		else printf("Selecting CPU failed\n");
 		devices = (cl_device_id*)malloc(numDevices * sizeof(cl_device_id));
 		status = clGetDeviceIDs(platform, CL_DEVICE_TYPE_CPU, numDevices, devices, NULL);
-		if(status == CL_SUCCESS) printf("Diveces  Success\n");
+		if(status == CL_SUCCESS) printf("Divices  Success\n");
 		else printf("Devices failed\n");
 	}
 	else
@@ -148,16 +148,18 @@ int main(int argc, char* argv[])
 	status = convertToString(filename, sourceStr);
 	const char *source = sourceStr.c_str();
 	size_t sourceSize[] = {strlen(source)};
+	printf("PROGRAM:\n%s\n", sourceStr.c_str());
 	cl_program program = clCreateProgramWithSource(context, 1, &source, sourceSize, &status);
 	if(status == CL_SUCCESS) printf("Creating Program Success\n");
-	else printf("C program failed\n");
+	else printf("%d ERROR code, C program failed\n", status);
 	/*Step 6: Build program. */
+	printf("%d\n Num Devices\n", numDevices);
 	status=clBuildProgram(program, numDevices ,devices,NULL,NULL,NULL);
 	if(status == CL_SUCCESS)
 	{
 		printf("Building Program Successed!\n");
 	}
-	else printf("Build failed");
+	else printf("%d ERROR code, Build failed\n", status);
 	int *input_a;
 	int *input_b;
 	int *output;
